@@ -125,3 +125,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# We are setting django user model configuration
+# We are over-riding default value used by django
+# We are passing our custom user model here.
+AUTH_USER_MODEL = 'core.User'

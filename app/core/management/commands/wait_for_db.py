@@ -2,6 +2,21 @@
 Django command to wait for database to be available
 """
 
+###############################################################
+# TOPIC: how to create custom management commands in django   #
+###############################################################
+"""
+- How to create custom management commands?
+- How to create command similar to `python manage.py runserver`?
+- How to create command similar to `django-admin startapp app`?
+
+https://docs.djangoproject.com/en/4.1/howto/custom-management-commands/
+
+"""
+###############################################################
+
+
+
 import time
 from MySQLdb import Error
 from django.db.utils import OperationalError

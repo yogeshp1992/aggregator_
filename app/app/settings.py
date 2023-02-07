@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_spectacular',
     'user'
 ]
@@ -52,7 +53,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 ROOT_URLCONF = 'app.urls'
 
@@ -130,8 +130,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# We are setting django user model configuration
-# We are over-riding default value used by django
+# We are setting Auth_User_Model configuration
+# We are over-riding the default value used by django.
 # We are passing our custom user model here.
-AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = 'core.user'
+
+
+# TODO - refer
+# https://drf-spectacular.readthedocs.io/en/latest/readme.html#installation
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}

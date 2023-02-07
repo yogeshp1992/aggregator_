@@ -39,6 +39,18 @@ class PublicUserApiTests(TestCase):
         }
 
         res = self.client.post("/api/user/create/", payload)
-
         self.assertEqual(res.status_code, 201)
+
+    def test_create_user_short_password(self):
+        """
+        Test creating user is successful (/user/create)
+        """
+
+        payload = {
+            "email": "test@example.com",
+            "password": "pwd",
+            "name": "Test Name"
+        }
+        res = self.client.post("/api/user/create/", payload)
+        self.assertEqual(res.status_code, 400)
 

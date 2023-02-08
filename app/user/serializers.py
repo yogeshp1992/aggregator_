@@ -39,3 +39,35 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
+
+class AuthTokenSerializer(serializers.Serializer):
+    """Serializer for user auth token"""
+
+    email = serializers.EmailField()
+    password = serializers.CharField(trim_whitespace=False)
+
+    def validate(self, data):
+        """validate and authenticate the user"""
+
+        email = data.get("email")
+        if email.isupper():
+            raise serializers.ValidationError("Email is not as per standards")
+
+        password = data.get("password")
+
+        # this is just to validate
+        # if user name and password exists in the database
+        user = authenticate(
+            request=self.context.get("request"),
+            username=email,
+            password=password
+        )
+
+        if not user:
+            msg = "Unable to authenticate user with given credentials"
+            raise serializers.ValidationError(msg, code="authorization")
+
+        data["user"] = user
+        return data
+

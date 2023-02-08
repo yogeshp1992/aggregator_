@@ -28,34 +28,37 @@ class UserAdmin(BaseUserAdmin):
 
     # TODO - reference
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        (_('Personal Information'), {'fields': ('name',)}),
+        (None, {"fields": ("email", "password")}),
+        (_("Personal Information"), {"fields": ("name",)}),
         (
-            _('Permissions'),
+            _("Permissions"),
             {
-                'fields': (
-                    'is_active',
-                    'is_staff',
-                    'is_superuser',
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
                 )
-            }
+            },
         ),
-        (_('Very Important dates'), {'fields': ('last_login',)}),
+        (_("Very Important dates"), {"fields": ("last_login",)}),
     )
-    readonly_fields = ['last_login']
+    readonly_fields = ["last_login"]
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': (
-                'email',
-                'password1',
-                'password2',
-                'name',
-                'is_active',
-                'is_staff',
-                'is_superuser',
-            ),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "password1",
+                    "password2",
+                    "name",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                ),
+            },
+        ),
     )
 
 

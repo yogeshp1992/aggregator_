@@ -12,13 +12,17 @@ from rest_framework import serializers
 # TODO - TOPIC - (DRF ModelSerializers), refer
 # https://www.django-rest-framework.org/tutorial/1-serialization/#using-modelserializers
 
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object."""
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'password', 'name']
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
+        fields = ["email", "password", "name"]
+        extra_kwargs = {
+            "password": {"write_only": True, "min_length": 5},
+            "email": {"min_length": 5},
+        }
 
     def create(self, validated_data):
         """Create and return a user with encrypted password."""
@@ -27,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update and return user."""
-        password = validated_data.pop('password', None)
+        password = validated_data.pop("password", None)
         user = super().update(instance, validated_data)
 
         if password:

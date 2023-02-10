@@ -2,10 +2,10 @@
 
 # Endpoints
 
-- `/user/create`
+- `/api/user/create`
 - `POST`: To create new user
 
-- `/user/token/`
+- `/api/user/token/`
 - `POST`: To get token
 
 - `/user/me`
@@ -90,6 +90,48 @@ class PublicUserApiTests(TestCase):
         res = self.client.post("/api/user/token/", payload)
         self.assertIn("token", res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_retrive_user_unauthorized(self):
+        """Test authentication is required for the user"""
+
+        res = self.client.get("/api/user/me/")
+        breakpoint()
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUserApiTests(TestCase):
+    """Test API requests that require authentication"""
+
+    @staticmethod
+    def create_user(**params):
+        """returns user from whichever default user model"""
+
+        return get_user_model().objects.create_user(**params)
+
+    def setUp(self) -> None:
+        self.user = self.create_user(
+            email="test@example.com",
+            password="pasword@213",
+            name="Test name"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrive_user_profile(self):
+        """Test retrieving user information with valid token"""
+
+        res = self.client.get("/api/user/me/")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for an authenticate user"""
+
+        payload = {"name": "updated name", "password": "password@321"}
+        res = self.client.patch("/api/user/me/", payload)
+        self.assertEqual(self.user.name, payload.get("name"))
+
+
+
 
 
 

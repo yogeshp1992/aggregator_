@@ -95,7 +95,6 @@ class PublicUserApiTests(TestCase):
         """Test authentication is required for the user"""
 
         res = self.client.get("/api/user/me/")
-        breakpoint()
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -115,6 +114,12 @@ class PrivateUserApiTests(TestCase):
             name="Test name"
         )
         self.client = APIClient()
+
+        # We are using `force_authenticate` function to set authentication flag
+        # to True. We don't want to create token and authenticate user under
+        # each test case. So we have handled authentication part over here.
+        # So any subsequent request using self.client to private API
+        # endpoints will have an authenticated user.
         self.client.force_authenticate(user=self.user)
 
     def test_retrive_user_profile(self):

@@ -3,7 +3,12 @@ Test the models
 """
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth import get_user_model
+
+# NOTE :: We have to import models from `core`
+# Because `core` is registered as an application under "INSTALLED_APPS"
+from core import models
 
 
 class ModelTests(TestCase):
@@ -69,3 +74,34 @@ class ModelTests(TestCase):
         # `create_superuser` method
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+    def test_create_job_title(self):
+        """Test creating new job title is successful"""
+
+        user = get_user_model().objects.create_user(
+            "test@example.com",
+            "password@321"
+        )
+        portal = models.Portal.objects.create(
+            name="naukri.com",
+            description="famous job portal in India"
+        )
+        job_description = models.JobDescription.objects.create(
+            role="To build backend microservices",
+            description_text="should know git, CICD and linux commands.",
+            pub_date=timezone.now()
+        )
+
+        job_title = models.JobTitle.objects.create(
+            user=user,
+            title="Python Developer",
+            portal=portal,
+            job_description=job_description
+        )
+        self.assertEqual(str(portal), portal.name)
+        self.assertEqual(str(job_description), job_description.role)
+        self.assertEqual(
+            str(job_title),
+            job_title.title + f"( {job_title.portal} )"
+        )
+

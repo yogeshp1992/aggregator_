@@ -1,4 +1,13 @@
-"""Views for Job API"""
+"""Views for Job API
+
+TODO EXERCISE
+-------
+1. Create similar endpoints (list, detail) for `portal`
+2. Write as many test cases as you can for `portal` endpoints
+3. Create similar endpoints (list, detail) for `job_description`
+4. Write as many test cases as you can for `job_description` endpoints
+
+"""
 
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -34,3 +43,4 @@ class JobTitleViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return serializers.JobTitleSerializer
         return self.serializer_class
+

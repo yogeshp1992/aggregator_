@@ -10,10 +10,23 @@ from django.urls import reverse, reverse_lazy
 
 # We have registered `core` as an application under `INSTALLED_APPS`
 from core.models import JobTitle, Portal, JobDescription
-from job.serializers import JobTitleSerializer
+from job.serializers import JobTitleSerializer, JobTitleDetailSerializer
 
 
-JOB_TITLE_URL = reverse("jobtitle:jobtitle-list")
+JOB_TITLE_URL = reverse("jobtitle:jobtitle-list")  # /api/jobtitle/jobtitles
+
+"""
+TODO - refer
+https://www.django-rest-framework.org/api-guide/routers/#routers
+reverse(<applicationname>:<basename>-list)
+reverse(<applicationname>:<basename>-detail)
+"""
+
+
+def detail_url(job_title_id):
+    """create and return a job title detail URL"""
+
+    return reverse("jobtitle:jobtitle-detail", args=[job_title_id])
 
 
 def create_job_description(**params):
@@ -135,5 +148,20 @@ class PrivateJobTitleApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_get_jobtitle_detail(self):
+        """Test get details of particular job title"""
+
+        job_title = create_job_title(
+            user=self.user,
+            title="Python developer",
+            portal=self.portal,
+            job_description=create_job_description()
+        )
+        url = detail_url(job_title.id)
+        res = self.client.get(url)
+        serializer = JobTitleDetailSerializer(job_title)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(serializer.data, res.data)
 
 

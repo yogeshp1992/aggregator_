@@ -23,16 +23,23 @@ reverse(<applicationname>:<basename>-detail)
 """
 
 
+def create_user(**params):
+    """Create and return a new user"""
+
+    return get_user_model().objects.create_user(**params)
+
+
 def detail_url(job_title_id):
     """create and return a job title detail URL"""
 
     return reverse("jobtitle:jobtitle-detail", args=[job_title_id])
 
 
-def create_job_description(**params):
+def create_job_description(user, **params):
     """create and return new job description"""
 
     defaults = {
+        "user": user,
         "role": "Simple Job Title",
         "description_text": "should know git,CICD, Linux and must know Python",
         "pub_date": timezone.now()
@@ -85,12 +92,14 @@ class PrivateJobTitleApiTests(TestCase):
 
         # portal
         self.portal = Portal.objects.create(
+            user=self.user,
             name="naukri.com",
             description="famous job hunting website"
         )
 
         # job_description
         self.job_description = JobDescription.objects.create(
+            user=self.user,
             role="To build backend microservices",
             description_text="should know git,CICD, Linux and must know Python",
             pub_date=timezone.now()
@@ -104,13 +113,15 @@ class PrivateJobTitleApiTests(TestCase):
             user=self.user,
             title="Python developer",
             portal=self.portal,
-            job_description=create_job_description()
+            job_description=create_job_description(
+                self.user
+            )
         )
         create_job_title(
             user=self.user,
             title="DEVOPS Engineer",
             portal=self.portal,
-            job_description=create_job_description()
+            job_description=create_job_description(self.user)
         )
 
         job_titles = JobTitle.objects.all().order_by("-id")
@@ -131,13 +142,13 @@ class PrivateJobTitleApiTests(TestCase):
             user=other_user,
             title="Python developer",
             portal=self.portal,
-            job_description=create_job_description()
+            job_description=create_job_description(other_user)
         )
         create_job_title(
             user=self.user,
             title="DEVOPS Engineer",
             portal=self.portal,
-            job_description=create_job_description()
+            job_description=create_job_description(self.user)
         )
 
         res = self.client.get(JOB_TITLE_URL)
@@ -156,12 +167,148 @@ class PrivateJobTitleApiTests(TestCase):
             user=self.user,
             title="Python developer",
             portal=self.portal,
-            job_description=create_job_description()
+            job_description=create_job_description(self.user)
         )
         url = detail_url(job_title.id)
         res = self.client.get(url)
         serializer = JobTitleDetailSerializer(job_title)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer.data, res.data)
+
+    def test_create_job_title(self):
+        """Test creating a jobtitle"""
+
+        # NOTE :: no need to pass user_id in payload
+        # user_id will be picked from request attributes.
+        payload = {
+            "title": "Python developer",
+            "portal": self.portal.id,
+            "job_description": self.job_description.id
+        }
+
+        res = self.client.post(JOB_TITLE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        job_title = JobTitle.objects.get(id=res.data["id"])
+        self.assertEqual(self.portal.id, res.data["portal"])
+        self.assertEqual(self.job_description.id, res.data["job_description"])
+        self.assertEqual(job_title.user, self.user)
+
+    def test_partial_job_title_update(self):
+        """Test partial update of a job title"""
+
+        job_title = create_job_title(
+            user=self.user,
+            title="DEVOPS Engineer",
+            portal=self.portal,
+            job_description=self.job_description
+        )
+
+        payload = {
+            "title": "Python developer",
+            "portal": self.portal.id,
+            "job_description": self.job_description.id
+        }
+
+        url = detail_url(job_title.id)
+        res = self.client.patch(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        # Need to reload DB when doing a patch request
+        # by default model is not refreshed
+        # (django does not automatically refresh field once we retrieve them)
+        job_title.refresh_from_db()
+        self.assertEqual(job_title.title, payload["title"])
+        self.assertEqual(job_title.user, self.user)
+
+    def test_full_update_job_title(self):
+        """Test full update of job title"""
+
+        job_title = create_job_title(
+            user=self.user,
+            title="DEVOPS Engineer",
+            portal=self.portal,
+            job_description=create_job_description(self.user)
+        )
+        payload = {
+            "title": "Python developer",
+            "portal": self.portal.id,
+            "job_description": self.job_description.id
+        }
+        url = detail_url(job_title.id)
+        res = self.client.put(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        job_title.refresh_from_db()
+
+        portal = Portal.objects.get(id=res.data["portal"])
+        self.assertEqual(portal.id, self.portal.id)
+        job_description = JobDescription.objects.get(
+            id=res.data["job_description"]
+        )
+        self.assertEqual(job_description.id, self.job_description.id)
+        self.assertEqual(job_title.user, self.user)
+
+    def test_jobtitle_update_user_makes_no_difference(self):
+        """Test changing the jobtitle user results in no difference"""
+
+        new_user = create_user(
+            email="otheruser@example.com",
+            password="password@3210"
+        )
+        job_title = create_job_title(
+            user=self.user,
+            title="DEVOPS Engineer",
+            portal=self.portal,
+            job_description=create_job_description(self.user)
+        )
+        payload = {
+            "title": "Python developer",
+            "portal": self.portal.id,
+            "user": new_user.id,
+            "job_description": self.job_description.id
+        }
+        url = detail_url(job_title.id)
+        self.client.patch(url, payload)
+
+        job_title.refresh_from_db()
+        self.assertEqual(job_title.user, self.user)
+
+    def test_delete_job_title(self):
+        """Test deleting a job title successful"""
+
+        job_title = create_job_title(
+            user=self.user,
+            title="DEVOPS Engineer",
+            portal=self.portal,
+            job_description=create_job_description(self.user)
+        )
+
+        url = detail_url(job_title.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(JobTitle.objects.filter(id=job_title.id).exists())
+
+    def test_job_title_other_users_jobtitle_error(self):
+        """Test trying to delete another users jobtitle gives error"""
+
+        new_user = create_user(
+            email="otheruser@example.com",
+            password="password@3210"
+        )
+        job_title = create_job_title(
+            user=new_user,
+            title="DEVOPS Engineer",
+            portal=self.portal,
+            job_description=create_job_description(self.user)
+        )
+
+        url = detail_url(job_title.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(JobTitle.objects.filter(id=job_title.id).exists())
+
 
 

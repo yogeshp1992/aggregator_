@@ -105,6 +105,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Portal(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=250, unique=True)
     description = models.CharField(max_length=250)
 
@@ -113,6 +117,10 @@ class Portal(models.Model):
 
 
 class JobDescription(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
     role = models.CharField(max_length=250)
     description_text = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=timezone.now)

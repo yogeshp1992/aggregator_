@@ -23,6 +23,7 @@ class ModelTests(TestCase):
 
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
+
         self.assertFalse(user.is_superuser)
 
     def test_new_user_email_normalization(self):
@@ -43,9 +44,7 @@ class ModelTests(TestCase):
     def test_new_user_without_email_raises_error(self):
         """
         Tests that creating using without email address will raise errors.
-
         Returns:
-
         """
 
         # TODO (Topic: usage of assertRaises)
@@ -84,11 +83,13 @@ class ModelTests(TestCase):
         )
         portal = models.Portal.objects.create(
             name="naukri.com",
+            user=user,
             description="famous job portal in India"
         )
         job_description = models.JobDescription.objects.create(
             role="To build backend microservices",
             description_text="should know git, CICD and linux commands.",
+            user=user,
             pub_date=timezone.now()
         )
 
@@ -104,4 +105,3 @@ class ModelTests(TestCase):
             str(job_title),
             job_title.title + f"( {job_title.portal} )"
         )
-

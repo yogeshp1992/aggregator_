@@ -9,11 +9,11 @@ from job import views
 # TODO - Refer
 # https://www.django-rest-framework.org/api-guide/routers/#defaultrouter
 
-router = DefaultRouter()
+router = DefauJobTitleViewSetltRouter()
 
 # this app name will be utilized in reverse function
 app_name = "jobtitle"
-router.register("jobtitles", views.JobTitleViewSet)
+router.register("jobtitles", views.)
 
 
 urlpatterns = [
